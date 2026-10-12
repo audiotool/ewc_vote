@@ -108,7 +108,7 @@
 </div>
 <div class="statusbar">
   <span>Team Voting</span>
-  <span>Snad Industries &middot; <b>v1.0</b></span>
+  <span>Snad Industries &middot; <b>v1.1</b></span>
 </div>
 
 <script>
@@ -139,7 +139,7 @@
   /* ===== */
   function drive(id){ return id ? "https://drive.google.com/uc?export=download&id="+id : ""; }
 
-  var list=document.getElementById('list'); var ALL=[], ROWS=[], PICKS=[null,null,null];
+  var list=document.getElementById('list'); var START=[]; var ALL=[], ROWS=[], PICKS=[null,null,null];
   var KEY='ewc26_vote_heard', HEARD={};
   try{ HEARD=JSON.parse(localStorage.getItem(KEY)||'{}')||{}; }catch(e){ HEARD={}; }
   var cnt=document.getElementById('count');
@@ -181,10 +181,12 @@
     row.appendChild(head); row.appendChild(pl); row.appendChild(au);
     list.appendChild(row);
     function upd(){ var d=au.duration; tm.textContent=fmt(au.currentTime)+((isFinite(d)&&d>0)?(' / '+fmt(d)):''); }
-    btn.addEventListener('click',function(){ if(!HEARD[t.f]){ HEARD[t.f]=1; save(); row.classList.add('done'); updCount(); } if(au.paused){ pauseOthers(au); au.play().catch(function(){}); btn.textContent='...'; } else au.pause(); });
+    function start(scroll){ if(!HEARD[t.f]){ HEARD[t.f]=1; save(); row.classList.add('done'); updCount(); } pauseOthers(au); au.currentTime=0; au.play().catch(function(){ btn.textContent='\u25B6'; }); btn.textContent='...'; if(scroll) row.scrollIntoView({behavior:'smooth',block:'center'}); }
+    START.push(start);
+    btn.addEventListener('click',function(){ if(au.paused){ if(!HEARD[t.f]||au.ended||au.currentTime===0) start(false); else { if(!HEARD[t.f]){HEARD[t.f]=1;save();row.classList.add('done');updCount();} pauseOthers(au); au.play().catch(function(){}); } } else au.pause(); });
     au.addEventListener('play',function(){ btn.textContent='\u2759\u2759'; btn.classList.add('on'); row.classList.add('on'); });
     au.addEventListener('pause',function(){ btn.textContent='\u25B6'; btn.classList.remove('on'); row.classList.remove('on'); });
-    au.addEventListener('ended',function(){ btn.textContent='\u25B6'; pd.style.width='0%'; });
+    au.addEventListener('ended',function(){ btn.textContent='\u25B6'; pd.style.width='0%'; if(START[i+1]) START[i+1](true); });
     au.addEventListener('timeupdate',function(){ var d=au.duration||0; pd.style.width=(d?au.currentTime/d*100:0)+'%'; upd(); });
     au.addEventListener('loadedmetadata',upd);
     au.addEventListener('progress',function(){ try{ if(au.buffered.length){ var e=au.buffered.end(au.buffered.length-1),d=au.duration||0; buf.style.width=(d?e/d*100:0)+'%'; } }catch(e){} });
