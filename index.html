@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Team Voting 2026</title>
+<style>
+  :root{
+    --bg:#0c0c0e; --panel:#141417; --panel2:#17171b; --line:#242429;
+    --ink:#ececee; --mut:#86868e; --accent:#ff6a13; --accent-dim:rgba(255,106,19,.14);
+    box-sizing:border-box; padding-top:env(safe-area-inset-top,0); padding-bottom:env(safe-area-inset-bottom,0);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:ui-sans-serif,system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1120px;margin:0 auto;padding:40px 18px 120px}
+  header{border-bottom:2px solid var(--accent);padding-bottom:22px;margin-bottom:24px}
+  .kick{font-size:12px;letter-spacing:4px;color:var(--mut);text-transform:uppercase;font-family:ui-monospace,monospace}
+  .logo{height:30px;width:auto;display:block}
+  .logo path,.logo rect{fill:var(--ink)}
+  h1{font-size:clamp(30px,6vw,46px);letter-spacing:-0.02em;margin:10px 0 0;font-weight:700}
+  .lede{color:var(--mut);font-size:14px;line-height:1.6;margin-top:12px;max-width:560px}
+  .count{color:var(--accent);font-size:12px;letter-spacing:2px;text-transform:uppercase;font-family:ui-monospace,monospace;margin:0 0 14px}
+  #list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .row{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;min-width:0}
+  .head{display:flex;align-items:center;gap:10px}
+  .num{font-family:ui-monospace,monospace;font-size:13px;color:var(--accent);min-width:22px}
+  .ttl{flex:1;min-width:0;font-size:16px;font-weight:600;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .player{display:flex;align-items:center;gap:10px;margin-top:10px}
+  .pbtn{width:38px;height:38px;min-width:38px;border-radius:50%;border:1px solid var(--line);background:var(--panel2);
+    color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:.12s;padding:0}
+  .pbtn:hover{border-color:var(--accent)}
+  .pbtn.on{background:var(--accent);border-color:var(--accent);color:#111}
+  .row{transition:border-color .15s}
+  .row:hover{border-color:#3a3a42}
+  .row.on{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+  .pbar{position:relative;flex:1;height:6px;border-radius:4px;background:#202027;cursor:pointer;overflow:hidden}
+  .pbar .buf{position:absolute;inset:0 auto 0 0;width:0;background:#30303a}
+  .pbar .played{position:absolute;inset:0 auto 0 0;width:0;background:var(--accent)}
+  .time{font-family:ui-monospace,monospace;font-size:11px;color:var(--mut);min-width:78px;text-align:right}
+  .dl{display:inline-flex;align-items:center;gap:7px;text-decoration:none;white-space:nowrap;
+    font-size:12px;font-weight:600;color:var(--ink);background:var(--panel2);border:1px solid var(--line);
+    border-radius:7px;padding:6px 11px;transition:.12s}
+  .dl:hover{border-color:var(--accent);background:var(--accent-dim);color:#fff}
+  .dl.off{opacity:.38;cursor:default;pointer-events:none}
+  .dl svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+  .count{display:flex;align-items:center;gap:14px}
+  .reset{background:none;border:0;padding:0;color:var(--mut);font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+  .reset:hover{color:var(--ink)}
+  .heard{display:none;align-items:center;gap:4px;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:1.5px;color:var(--accent);white-space:nowrap}
+  .row.done .heard{display:inline-flex}
+  .row.done{background:#111114}
+  .row.done .ttl{color:var(--mut)}
+  .row.done.on .ttl{color:var(--ink)}
+  .statusbar{position:fixed;left:0;right:0;bottom:0;background:rgba(10,10,12,0.92);border-top:1px solid var(--line);
+    backdrop-filter:blur(8px);padding:9px 18px;padding-bottom:calc(9px + env(safe-area-inset-bottom,0));
+    display:flex;justify-content:space-between;font-size:11px;color:var(--mut);letter-spacing:1px;font-family:ui-monospace,monospace}
+  .statusbar b{color:var(--accent)}
+  .vbtns{display:none;gap:4px}
+  body.voting .vbtns{display:flex}
+  body.voting .heard{display:none!important}
+  .vb{width:28px;height:28px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--mut);
+    font-family:ui-monospace,monospace;font-size:12px;font-weight:700;cursor:pointer;padding:0;transition:.12s}
+  .vb:hover{border-color:var(--accent);color:var(--ink)}
+  .vb.sel{background:var(--accent);border-color:var(--accent);color:#111}
+  .who{display:none;color:var(--accent);font-weight:500}
+  body.voting .who{display:inline}
+  .out{display:none;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:1.5px;color:var(--mut);white-space:nowrap}
+  body.voting .row.x .vbtns{display:none}
+  body.voting .row.x .out{display:inline}
+  body.voting .row.x{opacity:.4}
+  body.voting .row.pick{border-color:var(--accent)}
+  .vpanel{display:none;position:fixed;left:0;right:0;bottom:37px;z-index:5;background:#16120f;border-top:2px solid var(--accent);
+    padding:12px 18px;gap:14px;align-items:center;flex-wrap:wrap;font-size:13px}
+  body.voting .vpanel{display:flex}
+  body.voting .wrap{padding-bottom:200px}
+  .vtag{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:3px;color:var(--accent);font-weight:700}
+  .vname{background:var(--panel2);border:1px solid var(--line);border-radius:7px;color:var(--ink);padding:8px 10px;font:inherit;width:160px}
+  .vname:focus{outline:none;border-color:var(--accent)}
+  .vslot{font-family:ui-monospace,monospace;font-size:12px;color:var(--mut);white-space:nowrap}
+  .vslot b{color:var(--ink);font-family:ui-sans-serif,system-ui,sans-serif;font-size:13px}
+  .vsend{margin-left:auto;background:var(--accent);color:#111;border:0;border-radius:7px;padding:9px 16px;font:inherit;font-weight:700;cursor:pointer}
+  .vsend:disabled{opacity:.35;cursor:default}
+  .vclose{background:none;border:1px solid var(--line);color:var(--mut);border-radius:7px;padding:8px 11px;font:inherit;cursor:pointer}
+  .vclose:hover{color:var(--ink);border-color:#3a3a42}
+  .vmsg{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:1px;color:var(--accent)}
+  @media(max-width:760px){ #list{grid-template-columns:1fr} }
+</style>
+</head>
+<body class="voting">
+<div class="wrap">
+  <header>
+    <svg class="logo" viewBox="0 0 717 112" xmlns="http://www.w3.org/2000/svg" aria-label="audiotool x Esports World Cup"><path fill-rule="evenodd" clip-rule="evenodd" d="M83.7773 60.7577C83.7773 70.9743 92.0682 79.2557 102.289 79.2557V79.2499C112.516 79.2499 120.801 70.9687 120.801 60.7521V37.382C120.801 34.6955 118.626 32.5156 115.933 32.5156C113.239 32.5156 111.058 34.6955 111.058 37.382V44.4568C108.445 43.0509 105.461 42.2541 102.289 42.2541C92.0625 42.2541 83.7773 50.5412 83.7773 60.7577ZM93.5203 60.7521C93.5203 55.9084 97.4435 51.9869 102.289 51.9869C107.135 51.9869 111.058 55.9142 111.058 60.7521C111.058 65.59 107.135 69.5115 102.289 69.5115C97.4435 69.5115 93.5203 65.5956 93.5203 60.7521Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M32.1497 79.2516C30.3047 79.2516 28.6933 78.2215 27.8733 76.7132C25.1287 78.3238 21.9286 79.2516 18.512 79.2516C8.28513 79.2516 -4.64885e-10 70.9645 0 60.748C4.65033e-10 50.5314 8.28513 42.25 18.512 42.25C28.7389 42.25 37.0241 50.5314 37.0241 60.7536V74.3852C37.0241 77.0717 34.8432 79.2516 32.1555 79.2516H32.1497ZM18.5176 51.9885C13.6776 51.9885 9.74855 55.9101 9.74855 60.7536C9.74855 65.5973 13.6719 69.5132 18.5176 69.5132C23.3635 69.5132 27.2869 65.5915 27.2869 60.7536C27.2869 55.9157 23.3635 51.9885 18.5176 51.9885Z"/><path d="M60.393 79.2516C50.1745 79.2485 41.8867 70.9684 41.8867 60.748V47.1164C41.8867 44.4299 44.0676 42.25 46.7553 42.25C49.443 42.25 51.6239 44.4299 51.6239 47.1164V60.748C51.6239 65.5859 55.5473 69.5132 60.393 69.5132C65.2388 69.5132 69.1622 65.5915 69.1622 60.748V47.1164C69.1622 44.4299 71.3431 42.25 74.0308 42.25C76.7185 42.25 78.8994 44.4299 78.8994 47.1164V60.748C78.8994 70.9626 70.6174 79.2485 60.393 79.2516Z"/><path d="M131.513 79.2545C128.82 79.2545 126.645 77.0746 126.645 74.3881V51.9914C126.645 49.3049 128.825 47.125 131.513 47.125C134.201 47.125 136.382 49.3049 136.382 51.9914V74.3881C136.382 77.0746 134.201 79.2545 131.513 79.2545Z"/><path d="M131.513 42.2541C128.82 42.2541 126.645 40.0742 126.645 37.3877C126.645 34.7012 128.825 32.5156 131.513 32.5156C134.201 32.5156 136.382 34.6955 136.382 37.382C136.382 40.0685 134.201 42.2484 131.513 42.2484V42.2541Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M142.23 60.7536C142.23 70.9702 150.521 79.2516 160.742 79.2516C170.964 79.2516 179.254 70.9758 179.254 60.7536C179.254 50.5314 170.969 42.25 160.742 42.25C150.515 42.25 142.23 50.537 142.23 60.7536ZM151.973 60.7536C151.973 55.9101 155.903 51.9885 160.742 51.9885C165.583 51.9885 169.512 55.9157 169.512 60.7536C169.512 65.5915 165.589 69.5132 160.742 69.5132C155.896 69.5132 151.973 65.5973 151.973 60.7536Z"/><path d="M202.629 51.9925H193.861V60.7577C193.861 65.5956 197.784 69.5172 202.629 69.5172C205.317 69.5172 207.498 71.6972 207.498 74.3893C207.498 77.0815 205.317 79.2557 202.629 79.2557C192.409 79.2557 184.117 70.9743 184.117 60.7577V37.382C184.117 34.6955 186.298 32.5156 188.986 32.5156C191.673 32.5156 193.855 34.6955 193.855 37.382V42.2484H202.625C205.312 42.2484 207.492 44.4283 207.492 47.1148C207.492 49.8012 205.312 51.9811 202.625 51.9811L202.629 51.9925Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M209.453 60.7536C209.453 70.9702 217.743 79.2516 227.965 79.2516C238.192 79.2516 246.477 70.9758 246.477 60.7536C246.477 50.5314 238.192 42.25 227.965 42.25C217.739 42.25 209.453 50.537 209.453 60.7536ZM219.195 60.7536C219.195 55.9101 223.125 51.9885 227.965 51.9885C232.811 51.9885 236.734 55.9157 236.734 60.7536C236.734 65.5915 232.811 69.5132 227.965 69.5132C223.118 69.5132 219.195 65.5973 219.195 60.7536Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M268.875 79.2516C258.653 79.2516 250.363 70.9702 250.363 60.7536C250.363 50.537 258.649 42.25 268.875 42.25C279.102 42.25 287.388 50.5314 287.388 60.7536C287.388 70.9758 279.102 79.2516 268.875 79.2516ZM268.875 51.9885C264.035 51.9885 260.105 55.9101 260.105 60.7536C260.105 65.5973 264.03 69.5132 268.875 69.5132C273.721 69.5132 277.644 65.5915 277.644 60.7536C277.644 55.9157 273.721 51.9885 268.875 51.9885Z"/><path d="M292.262 74.3893C292.262 77.0757 294.437 79.2557 297.13 79.2557V79.2499C299.818 79.2499 301.999 77.0701 301.999 74.3837V37.382C301.999 34.6955 299.824 32.5156 297.13 32.5156C294.437 32.5156 292.257 34.6955 292.262 37.382V74.3893Z"/><path d="M367 1.01562L327.5 110.516" stroke-width="6" style="stroke:var(--ink)"/><g clip-path="url(#lgclip)"><path d="M677.332 25.0156H637.758H637.664L632.629 30.9196H649.3L639.646 57.5063H653.13L661.667 33.9943L656.04 30.9196H672.123L677.332 25.0156Z"/><path d="M634.778 25.0156H595.111L589.9 30.9196H592.967L583.324 57.5063H596.808L602.179 42.709H608.122L611.255 57.4796H624.739L621.595 42.709H628.338L634.778 25.0156ZM604.312 36.805L605.334 33.9943L599.708 30.9196H619.126L616.998 36.805H604.312Z"/><path d="M549.904 25.0156L544.696 30.9196H547.763L538.102 57.5063H577.777L589.574 25.0156H549.904ZM567.554 48.5276L573.178 51.6023H553.735L560.119 34.0023L554.504 30.9196H573.946L567.554 48.5276Z"/><path d="M453.961 25.0156H414.294H414.291L409.082 30.9196H412.15L402.496 57.5063H442.163L446.409 45.8103H432.928L430.823 51.6023H418.124L420.226 45.8103L414.6 42.7383H430.869L433.01 36.8343H423.484L424.516 33.9943L418.89 30.9196H438.333L437.216 33.9943H450.7L453.961 25.0156Z"/><path d="M544.371 25.0156H504.704L499.493 30.9196H502.56L492.906 57.5063H506.39L511.769 42.709H537.936L544.371 25.0156ZM513.897 36.805L514.919 33.9943L509.303 30.9196H528.722L526.594 36.805H513.897Z"/><path d="M495.905 33.9943L499.164 25.0156H459.497L454.286 30.9196H457.353L456.235 33.9943L478.131 45.8103L477.123 48.5863L482.645 51.6023H463.327L465.429 45.8103H451.945L447.699 57.5063H487.367L491.615 45.8103L464.093 30.9196H483.536L482.421 33.9943H495.905Z"/><path d="M717 25.0156H677.333L674.074 33.9943L695.967 45.8103L694.961 48.5863L700.483 51.6023H681.163L683.267 45.8103H669.783L665.535 57.5063H705.205L709.451 45.8103L681.932 30.9196H701.375L700.257 33.9943H713.741L717 25.0156Z"/><path d="M446.475 63.0522L442.341 67.7535H444.783L438.79 84.2122L437.082 88.9135H468.676L478.069 63.0469L446.475 63.0522ZM460.525 81.7749L465.005 84.2122H449.523L454.612 70.1909L450.132 67.7429H465.614L460.525 81.7749Z"/><path d="M703.21 63.0547H671.624L667.477 67.756H669.919L662.234 88.9267H672.971L677.248 77.1427H698.084L703.21 63.0547ZM678.953 72.4414L679.767 70.204L675.287 67.756H690.753L689.053 72.4414H678.953Z"/><path d="M552.244 63.0547L548.095 67.756H550.537L542.852 88.9267H566.697L575.717 85.396L583.828 63.0547H552.244ZM571.397 67.756L565.407 84.2147H555.298L560.387 70.1934L555.907 67.7454L571.397 67.756Z"/><path d="M628.633 70.204L631.229 63.0547H599.643L595.496 67.756H597.938L590.25 88.9267H621.836L625.217 79.6147H614.481L612.805 84.2254H602.694L607.785 70.204L603.306 67.756H618.785L617.896 70.204H628.633Z"/><path d="M667.217 63.0547H656.481L649.684 81.7774L654.161 84.2254H638.682L646.367 63.0547H635.631L631.484 67.756H633.926L626.238 88.9267H657.824L667.217 63.0547Z"/><path d="M533.293 79.612L531.617 84.2254H521.506L529.191 63.0547H518.455V63.0574V63.0547L514.308 67.756H516.75L509.062 88.9267H540.648L544.027 79.612H533.293Z"/><path d="M482.463 63.0547L478.316 67.756H480.758L473.07 88.9267H483.806L488.092 77.1427H492.824L495.327 88.9027H506.063L503.56 77.1427H508.92L514.046 63.0547H482.463ZM499.892 72.4414H489.784L490.595 70.204L486.118 67.756H501.584L499.892 72.4414Z"/><path d="M431.38 63.0547L424.552 81.8627L429.018 84.3027H418.96L426.677 63.0547H415.904L409.033 81.8547L413.512 84.3027H403.455L411.198 63.0547H400.425L396.262 67.772H398.712L391 89.0147H403.026L413.576 84.2974L421.956 89.0147H432.412L441.837 63.0547H431.38Z"/></g><defs><clipPath id="lgclip"><rect width="326" height="64" transform="translate(391 25.0156)"/></clipPath></defs></svg>
+    <h1>Team <span style="color:var(--accent)">Voting</span> 2026</h1>
+    <div class="lede">Die 17 wählbaren Remixe. Name eintragen, Platz 1, 2 und 3 vergeben, abschicken. Pro Name zählt nur die letzte Abgabe.</div>
+  </header>
+  <div class="count"><span id="count">0 / 17 heard</span><button class="reset" id="reset" type="button">Reset</button></div>
+  <div id="list"></div>
+</div>
+<div class="vpanel" id="vpanel">
+  <span class="vtag">TEAM VOTE</span>
+  <input class="vname" id="vname" type="text" placeholder="Dein Name" maxlength="40" autocomplete="off">
+  <span class="vslot">1. <b id="vs0">?</b></span>
+  <span class="vslot">2. <b id="vs1">?</b></span>
+  <span class="vslot">3. <b id="vs2">?</b></span>
+  <span class="vmsg" id="vmsg"></span>
+  <button class="vsend" id="vsend" type="button" disabled>Abschicken</button>
+</div>
+<div class="statusbar">
+  <span>Team Voting</span>
+  <span>Snad Industries &middot; <b>v1.0</b></span>
+</div>
+
+<script>
+(function(){
+  /* ===== TRACKS: t=title (original, artist hidden), f=audio file slug, a=artist (hidden), d=Drive download id (filled once masters are in the fresh Drive Mastered folder) ===== */
+  var TRACKS=[
+    {t:"Battle in the Sands 1", f:"TrackSharks - Battle in the Sands", a:"TrackSharks", d:"1iZx1ATVNc7d1MWd2v-eKVEtM3zGpGyGh"},
+    {t:"Blood Meridian", f:"TrackSharks - Blood Meridian", a:"TrackSharks", d:"1aCBryua-fofBt3sY0fpZVJPHp0MA3cLl"},
+    {t:"Forgotten Sands 1", f:"TrackSharks - Forgotten Sands", a:"TrackSharks", d:"1ITFIuwLR-qNDttGYuS9et0KL31h7ljZU"},
+    {t:"Forgotten Worlds 1", f:"TrackSharks - Forgotten Worlds", a:"TrackSharks", d:"1oTiqBvki2CEqoHPJBmWdvS6bLLREdRmV"},
+    {t:"Iron Cortex", f:"TrackSharks - Iron Cortex", a:"TrackSharks", d:"1j-pNysYl9UguZrNaSqsK_VzanA3QaIFX"},
+    {t:"Last Prophecy 1", f:"TrackSharks - Last Prophecy", a:"TrackSharks", d:"1u0CqRhhkYOcHNjcT0fpcwlcl03Yd5DY1"},
+    {t:"Panoramica 1", f:"TrackSharks - Panoramica", a:"TrackSharks", d:"1lbjoN8MSpsxew_siQGr0qNwJlCZyLr2W"},
+    {t:"Panoramica 3", f:"JayFK - Panoramica", a:"JayFK", d:"15SpUS2QN8oLY1yNF721uarRTgFYGcVQf"},
+    {t:"Push 1", f:"TrackSharks - Push", a:"TrackSharks", d:"1ZqFvkKsU6X-s0PzUb8WEhAZssjmPDajk"},
+    {t:"Push 4", f:"althruist - Push", a:"althruist", d:"1FcbDKRVBUafw63HeDnzyAPyV0ENWPmBr"},
+    {t:"Push 5", f:"PolanaZ - Push", a:"PolanaZ", d:"1v1ftf75_IhBQxNdeCy7URmmeAycKS6pz"},
+    {t:"Silent Throne 1", f:"TrackSharks - Silent Throne", a:"TrackSharks", d:"1tsgQOgYrZk5zml8K0sUBWvQ46u6-seqo"},
+    {t:"The Hour is Here 1", f:"TrackSharks - The Hour is Here", a:"TrackSharks", d:"1xh1jcLKcBPvBqcr34LyBn2bqhzYU878v"},
+    {t:"Timerace 1", f:"TrackSharks - Timerace", a:"TrackSharks", d:"1Sh434nsR4QKxD6k0hYe-HH9cWPjWWnF9"},
+    {t:"Timerace 3", f:"Dabrig - Timerace", a:"Dabrig", d:"1wFDeH9d126am-JshUNVG_gxY-bIfZVyM"},
+    {t:"Timerace 4", f:"bnsd - Timerace", a:"bnsd", d:"1gAZqFnF6t2m3Hhyy5M_vuRuM2sUdhsxU"},
+    {t:"Timerace 5", f:"Naswalt - Timerace", a:"Naswalt", d:"1CCHJQ7Sdll9bmBnpN2PAyIc6RMM8vssc"}
+  ];
+  /* ===== VOTING: type "vote" to open. SCRIPT_URL = Apps Script web app URL. EXCLUDED = artists not eligible ===== */
+  var SCRIPT_URL="https://script.google.com/macros/s/AKfycbxmnM5jca4FN6wI3yeujeJFVkadWNXRR5CfXwAI4dUui_jrZB1egYdZ6SPpun_n8g6Z2Q/exec";
+  var EXCLUDED=["goresurf","gizo777","Sandburgen","rai_"];
+  /* ===== */
+  function drive(id){ return id ? "https://drive.google.com/uc?export=download&id="+id : ""; }
+
+  var list=document.getElementById('list'); var ALL=[], ROWS=[], PICKS=[null,null,null];
+  var KEY='ewc26_vote_heard', HEARD={};
+  try{ HEARD=JSON.parse(localStorage.getItem(KEY)||'{}')||{}; }catch(e){ HEARD={}; }
+  var cnt=document.getElementById('count');
+  function save(){ try{ localStorage.setItem(KEY,JSON.stringify(HEARD)); }catch(e){} }
+  function updCount(){ var n=0; TRACKS.forEach(function(t){ if(HEARD[t.f])n++; }); cnt.textContent=n+' / '+TRACKS.length+' heard'; }
+  document.getElementById('reset').addEventListener('click',function(){ HEARD={}; save(); document.querySelectorAll('.row.done').forEach(function(r){ r.classList.remove('done'); }); updCount(); });
+  function fmt(s){ if(!isFinite(s)||s<0)s=0; s=s|0; return (s/60|0)+':'+('0'+(s%60)).slice(-2); }
+  function pauseOthers(cur){ ALL.forEach(function(a){ if(a!==cur&&!a.paused)a.pause(); }); }
+
+  TRACKS.forEach(function(t,i){
+    var url=drive(t.d);
+    var row=document.createElement('div'); row.className='row';
+    var num=document.createElement('div'); num.className='num'; num.textContent=String(i+1).padStart(2,'0');
+    var head=document.createElement('div'); head.className='head';
+    var ttl=document.createElement('div'); ttl.className='ttl'; ttl.textContent=t.t;
+    var who=document.createElement('span'); who.className='who'; who.textContent=' \u00b7 '+(t.a==='rai_'?'rai.':t.a); ttl.appendChild(who);
+    var hd=document.createElement('span'); hd.className='heard'; hd.textContent='\u2713 HEARD';
+    if(HEARD[t.f]) row.classList.add('done');
+    var pl=document.createElement('div'); pl.className='player';
+    var btn=document.createElement('button'); btn.className='pbtn'; btn.type='button'; btn.textContent='\u25B6';
+    var bar=document.createElement('div'); bar.className='pbar';
+    var buf=document.createElement('div'); buf.className='buf';
+    var pd=document.createElement('div'); pd.className='played';
+    bar.appendChild(buf); bar.appendChild(pd);
+    var tm=document.createElement('div'); tm.className='time'; tm.textContent='0:00';
+    var au=document.createElement('audio'); au.preload='none'; au.src=encodeURIComponent(t.f)+'.mp3'; ALL.push(au);
+    pl.appendChild(btn); pl.appendChild(bar); pl.appendChild(tm);
+    var dl;
+    if(url){ dl=document.createElement('a'); dl.className='dl'; dl.href=url; dl.setAttribute('download',''); }
+    else { dl=document.createElement('span'); dl.className='dl off'; dl.title='Download kommt'; }
+    dl.innerHTML='<svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg> WAV';
+    var vb=document.createElement('div'); vb.className='vbtns';
+    var out=document.createElement('span'); out.className='out'; out.textContent='NOT ELIGIBLE';
+    if(EXCLUDED.indexOf(t.a)>-1) row.classList.add('x');
+    [0,1,2].forEach(function(k){ var b=document.createElement('button'); b.type='button'; b.className='vb'; b.textContent=String(k+1); b.title='Platz '+(k+1);
+      b.addEventListener('click',function(){ pick(k,i); }); vb.appendChild(b); });
+    ROWS.push({row:row,btns:vb.children});
+    head.appendChild(num); head.appendChild(ttl); head.appendChild(hd); head.appendChild(out); head.appendChild(vb); head.appendChild(dl);
+    row.appendChild(head); row.appendChild(pl); row.appendChild(au);
+    list.appendChild(row);
+    function upd(){ var d=au.duration; tm.textContent=fmt(au.currentTime)+((isFinite(d)&&d>0)?(' / '+fmt(d)):''); }
+    btn.addEventListener('click',function(){ if(!HEARD[t.f]){ HEARD[t.f]=1; save(); row.classList.add('done'); updCount(); } if(au.paused){ pauseOthers(au); au.play().catch(function(){}); btn.textContent='...'; } else au.pause(); });
+    au.addEventListener('play',function(){ btn.textContent='\u2759\u2759'; btn.classList.add('on'); row.classList.add('on'); });
+    au.addEventListener('pause',function(){ btn.textContent='\u25B6'; btn.classList.remove('on'); row.classList.remove('on'); });
+    au.addEventListener('ended',function(){ btn.textContent='\u25B6'; pd.style.width='0%'; });
+    au.addEventListener('timeupdate',function(){ var d=au.duration||0; pd.style.width=(d?au.currentTime/d*100:0)+'%'; upd(); });
+    au.addEventListener('loadedmetadata',upd);
+    au.addEventListener('progress',function(){ try{ if(au.buffered.length){ var e=au.buffered.end(au.buffered.length-1),d=au.duration||0; buf.style.width=(d?e/d*100:0)+'%'; } }catch(e){} });
+    au.addEventListener('error',function(){ btn.textContent='!'; });
+    bar.addEventListener('click',function(e){ var r=bar.getBoundingClientRect(),d=au.duration||0; if(d) au.currentTime=Math.max(0,Math.min(d,(e.clientX-r.left)/r.width*d)); });
+  });
+  updCount();
+
+  /* ===== VOTING ===== */
+  var vname=document.getElementById('vname'), vsend=document.getElementById('vsend'), vmsg=document.getElementById('vmsg');
+  try{ vname.value=localStorage.getItem('ewc26_vote_name')||''; }catch(e){}
+  function pick(k,i){
+    if(PICKS[k]===i) PICKS[k]=null;
+    else { PICKS=PICKS.map(function(p){ return p===i?null:p; }); PICKS[k]=i; }
+    vmsg.textContent=''; render();
+  }
+  function render(){
+    ROWS.forEach(function(r,i){
+      var on=false;
+      for(var k=0;k<3;k++){ var s=PICKS[k]===i; r.btns[k].classList.toggle('sel',s); if(s)on=true; }
+      r.row.classList.toggle('pick',on);
+    });
+    for(var k=0;k<3;k++) document.getElementById('vs'+k).textContent=PICKS[k]===null?'?':TRACKS[PICKS[k]].t;
+    vsend.disabled=!(vname.value.trim() && PICKS.every(function(p){ return p!==null; }));
+  }
+  vname.addEventListener('input',function(){ try{ localStorage.setItem('ewc26_vote_name',vname.value.trim()); }catch(e){} render(); });
+  vsend.addEventListener('click',function(){
+    if(!SCRIPT_URL){ vmsg.textContent='SCRIPT URL FEHLT'; return; }
+    var body={name:vname.value.trim(), p1:TRACKS[PICKS[0]].t+' ('+TRACKS[PICKS[0]].f+')', p2:TRACKS[PICKS[1]].t+' ('+TRACKS[PICKS[1]].f+')', p3:TRACKS[PICKS[2]].t+' ('+TRACKS[PICKS[2]].f+')'};
+    vsend.disabled=true; vmsg.textContent='SENDE...';
+    fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)})
+      .then(function(){ vmsg.textContent='\u2713 GESENDET'; render(); })
+      .catch(function(){ vmsg.textContent='FEHLER, NOCHMAL VERSUCHEN'; render(); });
+  });
+  render();
+})();
+</script>
+</body>
+</html>
